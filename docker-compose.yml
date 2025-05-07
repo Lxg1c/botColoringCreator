@@ -1,0 +1,11 @@
+services:
+  redis:
+    image: latest
+    build: .
+    ports:
+      - "6379:6379"
+  bot:
+    build: .
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
