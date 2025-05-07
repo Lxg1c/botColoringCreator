@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     )
 
     BOT_TOKEN: str
+    REDIS_HOST: str
+    REDIS_PORT: int
 
 
 # Создаем объект настроек
