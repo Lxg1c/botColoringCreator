@@ -1,14 +1,10 @@
-import logging
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import Message
 from aiogram.enums import ParseMode
 from aiogram.utils import markdown
-from keyboards import ButtonText, get_on_start_kb, get_confirm_keyboard
-
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+from keyboards import ButtonText, get_on_start_kb
+from shared import logger
 
 router = Router(name=__name__)
 
@@ -58,36 +54,3 @@ async def handle_help(message: Message):
         text="Поддержка: @Kharamen"
     )
 
-@router.message(F.photo | (F.document & F.document.mime_type.startswith("image/")))
-async def handle_image(message: Message):
-    logger.info(f"User {message.from_user.id} sent an image")
-    # Определим объект фото/документа
-    if message.photo:
-        file_id = message.photo[-1].file_id
-    else:
-        file_id = message.document.file_id
-
-    # Отправим изображение обратно с inline-клавиатурой
-    await message.answer_photo(
-        photo=file_id,
-        caption="Это изображение подходит?",
-        reply_markup=get_confirm_keyboard()
-    )
-
-@router.callback_query(F.data == "confirm_image")
-async def handle_confirm(callback: CallbackQuery):
-    logger.info(f"User {callback.from_user.id} confirmed image")
-    await callback.message.edit_caption(caption="✅ Изображение подтверждено!")
-    await callback.answer("Изображение подтверждено")
-
-@router.callback_query(F.data == "edit_image")
-async def handle_edit(callback: CallbackQuery):
-    logger.info(f"User {callback.from_user.id} chose to edit image")
-    await callback.message.edit_caption(caption="✏️ Хорошо, отправь новое изображение.")
-    await callback.answer("Отправьте новое изображение")
-
-@router.callback_query(F.data == "cancel_image")
-async def handle_cancel(callback: CallbackQuery):
-    logger.info(f"User {callback.from_user.id} canceled image")
-    await callback.message.edit_caption(caption="❌ Отменено.")
-    await callback.answer("Действие отменено")
