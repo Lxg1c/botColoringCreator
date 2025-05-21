@@ -66,19 +66,14 @@ BOT_TOKEN=ваш_токен_от_BotFather
 coloring-book-bot/
 ├── apiColoringCreator/        # Backend-сервис генерации изображений
 │   └── Dockerfile             # Dockerfile для backend
-│   └── ...                    # Код и зависимости backend-а
 │
 ├── botColoringCreator/        # Telegram-бот на aiogram
 │   └── Dockerfile             # Dockerfile для бота
-│   └── ...                    # Код и зависимости бота
-│
-├── vaudience_backend/         # (Не используется в docker-compose, возможно чужой проект)
-│   └── ...                    # Необязательная часть
+│   └── .env                   # Переменные окружения для бота
 │
 ├── .env                       # Конфигурация для kafka и zookeeper
 │
 ├── docker-compose.yml         # Описание сервисов и сетей Docker
-\
 ```
 #### 1. Убедитесь, что установлен [Docker](https://docs.docker.com/get-docker/) и [Docker Compose](https://docs.docker.com/compose/install/).
 
