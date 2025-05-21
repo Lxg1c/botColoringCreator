@@ -1,7 +1,6 @@
 from aiogram import F, Router
 from aiogram.types import Message, CallbackQuery, BufferedInputFile
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import StatesGroup, State
 from kafka_settings.producer import send_prompt, send_image
 from keyboards import get_confirm_keyboard
 from shared import logger
@@ -9,10 +8,6 @@ import io
 
 
 router = Router(name=__name__)
-
-
-class GenStates(StatesGroup):
-    waiting_for_input = State()
 
 
 async def download_photo(bot, file_id: str) -> io.BytesIO:
@@ -23,23 +18,17 @@ async def download_photo(bot, file_id: str) -> io.BytesIO:
 
 
 @router.message(F.photo | (F.document & F.document.mime_type.startswith("image/")))
-async def handle_image(message: Message, state: FSMContext, bot):
+async def handle_image(message: Message, bot):
     logger.info(f"User {message.from_user.id} sent an image")
 
     file_id = message.photo[-1].file_id if message.photo else message.document.file_id
 
     photo_io = await download_photo(bot, file_id)
     photo_io.seek(0)
-    image_data = photo_io.read()  # безопасное чтение
-
-    await state.set_state(GenStates.waiting_for_input)
-    await state.update_data(
-        file_id=file_id,
-        input_type="image"
-    )
+    image_data = photo_io.read()
 
     await message.answer_photo(
-        photo=BufferedInputFile(image_data, filename="preview.jpg"),  # ❗ только строка, не base64
+        photo=BufferedInputFile(image_data, filename="preview.jpg"),
         caption="Это изображение подходит?",
         reply_markup=get_confirm_keyboard()
     )
@@ -48,7 +37,6 @@ async def handle_image(message: Message, state: FSMContext, bot):
 @router.message(F.text)
 async def handle_text(message: Message, state: FSMContext):
     logger.info(f"User {message.from_user.id} sent a prompt")
-    await state.set_state(GenStates.waiting_for_input)
     await state.update_data(prompt=message.text, input_type="text")
     await message.answer(
         text=f"{message.text}\n\nСгенерировать раскраску с этим описанием?",
@@ -88,16 +76,14 @@ async def handle_confirm(callback: CallbackQuery, state: FSMContext, bot):
 
 
 @router.callback_query(F.data == "edit_image")
-async def handle_edit(callback: CallbackQuery, state: FSMContext):
+async def handle_edit(callback: CallbackQuery):
     logger.info(f"User {callback.from_user.id} chose to edit")
-    await state.clear()
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("✏️ Хорошо, отправь новое изображение или описание.")
 
 
 @router.callback_query(F.data == "cancel_image")
-async def handle_cancel(callback: CallbackQuery, state: FSMContext):
+async def handle_cancel(callback: CallbackQuery):
     logger.info(f"User {callback.from_user.id} canceled input")
-    await state.clear()
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("❌ Генерация отменена.")
