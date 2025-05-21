@@ -126,9 +126,7 @@ docker-compose up --build
 
 ## ⚙️ Используемые технологии
 
-* 🧠 [`Stable Diffusion`](https://huggingface.co/runwayml/stable-diffusion-v1-5) (через `diffusers`)
 * 🤖 [`aiogram 3`](https://docs.aiogram.dev)
-* 🌐 [`googletrans`](https://pypi.org/project/googletrans/) — для перевода описаний
 * 🧵 Kafka — для обмена сообщениями между ботом и backend-сервисом
 * 🐳 Docker + Docker Compose — для удобного развёртывания
 * 📦 Poetry — для управления зависимостями и окружением
