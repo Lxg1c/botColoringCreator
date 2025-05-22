@@ -12,7 +12,7 @@ Telegram-бот, который по текстовому описанию ил�
 ### 1. Клонируйте репозиторий
 
 ```bash
-git clone https://github.com/your-username/coloring-book-bot.git
+git clone https://github.com/Lxg1c/botColoringCreator.git
 cd coloring-book-bot
 ```
 
