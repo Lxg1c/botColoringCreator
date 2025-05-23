@@ -183,7 +183,7 @@ networks:
 #### 4. Запустите контейнеры:
 
 ```bash
-docker-compose up -d --build
+docker compose up -d --build
 ```
 
 Контейнеры, которые будут запущены:
