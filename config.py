@@ -13,3 +13,4 @@ class Settings(BaseSettings):
 
 # Создаем объект настроек
 settings = Settings()
+print(settings.BOT_TOKEN)
