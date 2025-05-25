@@ -18,10 +18,13 @@ async def download_photo(bot, file_id: str) -> io.BytesIO:
 
 
 @router.message(F.photo | (F.document & F.document.mime_type.startswith("image/")))
-async def handle_image(message: Message, bot):
+async def handle_image(message: Message, state: FSMContext, bot):
     logger.info(f"User {message.from_user.id} sent an image")
 
     file_id = message.photo[-1].file_id if message.photo else message.document.file_id
+
+    # Сохраняем file_id в FSMContext
+    await state.update_data(file_id=file_id, input_type="image")
 
     photo_io = await download_photo(bot, file_id)
     photo_io.seek(0)
@@ -46,28 +49,32 @@ async def handle_text(message: Message, state: FSMContext):
 
 @router.callback_query(F.data == "confirm_image")
 async def handle_confirm(callback: CallbackQuery, state: FSMContext, bot):
-    logger.info(f"User {callback.from_user.id} confirmed input")
+    logger.info(f"User {callback.from_user.id} подтвердил генерацию")
     await callback.message.edit_reply_markup(reply_markup=None)
     await callback.message.answer("✅ Генерируем раскраску...")
     data = await state.get_data()
     input_type = data.get("input_type")
 
     try:
+        logger.info("Определяем тип генерации")
         if input_type == "text":
+            logger.info("Тип генерации: текст")
             prompt = data.get("prompt")
             if not prompt:
                 await callback.message.answer("❌ Описание не найдено.")
                 return
             await send_prompt(prompt, callback.from_user.id, callback.message.chat.id)
-            logger.info(f"Промпт отправлен: {prompt}")
-        elif input_type == "image":
+            logger.info(f"Промпт отправлен на обработку. Промпт: {prompt}")
+        else:
+            logger.info("Тип генерации: фото")
+            logger.info(data)
             file_id = data.get("file_id")
             if not file_id:
                 await callback.message.answer("❌ Изображение не найдено.")
                 return
             photo_bytes = await download_photo(bot, file_id)
             await send_image(photo_bytes.getvalue(), callback.from_user.id, callback.message.chat.id)
-            logger.info("Фото отправлено")
+            logger.info("Фото отправлено на обработку")
     except Exception as e:
         logger.error(f"Ошибка обработки: {e}")
         await callback.message.answer("❌ Произошла ошибка при обработке. Попробуйте позже.")
